@@ -1,0 +1,30 @@
+1-GPU Run
+Arguments: Namespace(batch_size=64, epochs=10, lr=0.001, target_accuracy=0.85, patience=2, model='WideResNet', num_nodes=1, node_id=0, num_gpus=1) 
+
+Epoch =  1: Epoch Time = 47.552, Cumul. Time = 47.552, Samples/Sec = 1051.143, Training Accuracy = 0.437, Validation Loss = 1.227, Validation Accuracy = 0.564
+Epoch =  2: Epoch Time = 30.576, Cumul. Time = 78.128, Samples/Sec = 1634.726, Training Accuracy = 0.627, Validation Loss = 0.940, Validation Accuracy = 0.686
+Epoch =  3: Epoch Time = 30.646, Cumul. Time = 108.774, Samples/Sec = 1631.037, Training Accuracy = 0.700, Validation Loss = 0.769, Validation Accuracy = 0.733
+Epoch =  4: Epoch Time = 30.662, Cumul. Time = 139.436, Samples/Sec = 1630.182, Training Accuracy = 0.747, Validation Loss = 0.611, Validation Accuracy = 0.786
+Epoch =  5: Epoch Time = 30.685, Cumul. Time = 170.120, Samples/Sec = 1628.945, Training Accuracy = 0.773, Validation Loss = 0.572, Validation Accuracy = 0.804
+Epoch =  6: Epoch Time = 30.695, Cumul. Time = 200.816, Samples/Sec = 1628.387, Training Accuracy = 0.796, Validation Loss = 0.501, Validation Accuracy = 0.832
+Epoch =  7: Epoch Time = 30.711, Cumul. Time = 231.527, Samples/Sec = 1627.551, Training Accuracy = 0.814, Validation Loss = 0.466, Validation Accuracy = 0.841
+Epoch =  8: Epoch Time = 30.718, Cumul. Time = 262.245, Samples/Sec = 1627.177, Training Accuracy = 0.829, Validation Loss = 0.457, Validation Accuracy = 0.847
+Epoch =  9: Epoch Time = 30.717, Cumul. Time = 292.962, Samples/Sec = 1627.261, Training Accuracy = 0.841, Validation Loss = 0.413, Validation Accuracy = 0.860
+Epoch = 10: Epoch Time = 30.717, Cumul. Time = 323.679, Samples/Sec = 1627.227, Training Accuracy = 0.853, Validation Loss = 0.436, Validation Accuracy = 0.854
+Early stopping after epoch 10
+
+2-GPU Run
+Arguments: Namespace(batch_size=64, epochs=12, lr=0.001, target_accuracy=0.85, patience=2, model='WideResNet', num_nodes=1, node_id=0, num_gpus=2) 
+
+Epoch =  1: Epoch Time = 23.549, Cumul. Time = 23.549, Samples/Sec = 2119.823, Training Accuracy = 0.405, Validation Loss = 1.217, Validation Accuracy = 0.562
+Epoch =  2: Epoch Time = 16.154, Cumul. Time = 39.702, Samples/Sec = 3090.341, Training Accuracy = 0.612, Validation Loss = 1.100, Validation Accuracy = 0.646
+Epoch =  3: Epoch Time = 16.231, Cumul. Time = 55.933, Samples/Sec = 3075.585, Training Accuracy = 0.689, Validation Loss = 0.838, Validation Accuracy = 0.705
+Epoch =  4: Epoch Time = 16.277, Cumul. Time = 72.210, Samples/Sec = 3066.891, Training Accuracy = 0.738, Validation Loss = 0.729, Validation Accuracy = 0.758
+Epoch =  5: Epoch Time = 16.327, Cumul. Time = 88.537, Samples/Sec = 3057.471, Training Accuracy = 0.767, Validation Loss = 0.649, Validation Accuracy = 0.778
+Epoch =  6: Epoch Time = 16.353, Cumul. Time = 104.890, Samples/Sec = 3052.624, Training Accuracy = 0.791, Validation Loss = 0.555, Validation Accuracy = 0.812
+Epoch =  7: Epoch Time = 16.382, Cumul. Time = 121.272, Samples/Sec = 3047.230, Training Accuracy = 0.809, Validation Loss = 0.538, Validation Accuracy = 0.825
+Epoch =  8: Epoch Time = 16.387, Cumul. Time = 137.660, Samples/Sec = 3046.281, Training Accuracy = 0.825, Validation Loss = 0.424, Validation Accuracy = 0.859
+Epoch =  9: Epoch Time = 16.416, Cumul. Time = 154.076, Samples/Sec = 3040.919, Training Accuracy = 0.837, Validation Loss = 0.516, Validation Accuracy = 0.831
+Epoch = 10: Epoch Time = 16.408, Cumul. Time = 170.484, Samples/Sec = 3042.382, Training Accuracy = 0.847, Validation Loss = 0.429, Validation Accuracy = 0.856
+Epoch = 11: Epoch Time = 16.420, Cumul. Time = 186.904, Samples/Sec = 3040.142, Training Accuracy = 0.855, Validation Loss = 0.376, Validation Accuracy = 0.873
+Early stopping after epoch 11
