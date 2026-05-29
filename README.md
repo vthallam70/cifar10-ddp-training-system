@@ -1,133 +1,128 @@
-# Project 2: Distributed Data Parallel Training on CIFAR-10
-**Members:** hle14, jdk330, riyap06, tvignesh, xavierphan
-**Names:** Hieu Le, Jack Kochan, Riya Pasupulati, Vignesh Thallam, Xavier Phan
+# Distributed CIFAR-10 Training System
+
+## Overview
+
+This project implements distributed deep learning training for image classification on the CIFAR-10 dataset using PyTorch Distributed Data Parallel (DDP).
+
+The goal of the project was to investigate the performance benefits of multi-GPU training compared to traditional single-GPU training while maintaining model accuracy. Training was performed on a high-performance computing (HPC) cluster using NVIDIA GPUs and Slurm job scheduling.
 
 ---
 
-## File Structure
-```text
-cmda3634-pr2/
-├── .gitignore
-├── README.md
-├── cifar10_ddp.py
-├── job.sh
-├── output.log
-└── cifar10.py
-```
+## Objectives
 
-## 1. Process Topology and Rank Assignment
-Our DDP implementation uses one Falcon node with two NVIDIA A30 GPUs. We launch one Python process per GPU.
+* Implement distributed training using PyTorch DDP
+* Train image classification models on the CIFAR-10 dataset
+* Compare single-GPU and multi-GPU performance
+* Analyze training throughput and scalability
+* Evaluate the impact of distributed computing on model training time
 
-Node 0
-├── GPU 0 → local_rank = 0 → global_rank = 0
-└── GPU 1 → local_rank = 1 → global_rank = 1
+---
 
-The global rank is computed as:
-```
-global_rank = args.node_id * args.num_gpus + local_rank
-```
-The world size is computed as:
-```
-world_size = args.num_nodes * args.num_gpus
-```
-For our successful run, we used `num_nodes = 1`, `node_id = 0`, and `num_gpus = 2`, so `world_size = 2`.
+## Technologies Used
 
-Each process is pinned to its assigned GPU using:
-```
-torch.cuda.set_device(local_rank)
-device = torch.device(f"cuda:{local_rank}")
-```
+* Python
+* PyTorch
+* Distributed Data Parallel (DDP)
+* CUDA
+* Slurm
+* Linux
+* HPC Computing
 
-The process group is initialized using the NCCL backend with `dist.init_process_group(...)`. This gives each process a unique rank and allows the two GPU workers to communicate during training.
+---
 
-## 2. Data Partitioning
-The original single-GPU script used a normal shuffled DataLoader. In the DDP version, we use `DistributedSampler` so each GPU receives a different part of the CIFAR-10 dataset.
+## Dataset
 
-The training sampler uses the total number of workers, the current process rank, and shuffling. The validation sampler also uses the total number of workers and the current rank, but does not shuffle.
+The project uses the CIFAR-10 dataset, which contains 60,000 color images across 10 object categories:
 
-This prevents both GPUs from training on the same exact samples. Each process only sees its own shard of the dataset.
+* Airplanes
+* Automobiles
+* Birds
+* Cats
+* Deer
+* Dogs
+* Frogs
+* Horses
+* Ships
+* Trucks
 
-At the start of each epoch, we call:
-```
-train_sampler.set_epoch(epoch)
-```
-This changes the shuffle order each epoch while keeping all ranks synchronized. Without this, the sampler could use the same ordering every epoch.
+The dataset consists of:
 
-## 3. Gradient Synchronization
-The model is wrapped with PyTorch `DistributedDataParallel`:
-```
-model = DDP(model, device_ids=[local_rank])
-```
+* 50,000 training images
+* 10,000 testing images
 
-Each GPU has its own copy of the WideResNet model. During the forward pass, each process works on its own mini-batch. During the backward pass, DDP averages the gradients across all GPUs using an all-reduce operation.
+---
 
-Then each process applies the same optimizer update. Because every process starts from the same weights and applies the same averaged gradient update, all model replicas stay synchronized.
+## Implementation
 
-## 4. Metric Aggregation
-Training accuracy is computed by summing the correct predictions and total labels across all GPUs. This gives the true training accuracy across the full distributed batch.
+The training system includes:
 
-Validation accuracy and validation loss are averaged across ranks using `dist.all_reduce` with `dist.ReduceOp.AVG`. This is appropriate because each rank computes validation metrics on its own shard, and the final result should represent the average validation performance across all shards.
+### Distributed Training
 
-Throughput, or images per second, is summed using `dist.reduce` with `dist.ReduceOp.SUM` and sent to rank 0. Throughput is summed because each GPU processes images independently. The total images per second represents the total work completed by the whole distributed job.
+* PyTorch Distributed Data Parallel (DDP)
+* Multi-process GPU training
+* Distributed data loading
+* Gradient synchronization across GPUs
 
-Only rank 0 prints the results so the log does not contain duplicate output from each process.
+### Training Pipeline
 
-## 5. Performance and Scaling
-| Metric | 1 GPU (Baseline) | 2 GPUs (Falcon A30) |
-|--------|------------------:|---------------------:|
-| Images/sec | 1627.227 | 3040.142 |
-| Time to 85% Acc | 323.679 sec | 186.904 sec |
-| Final Accuracy | 0.853 | 0.873 |
+* CIFAR-10 data preprocessing
+* Distributed samplers
+* Model training and validation
+* Accuracy tracking
+* Early stopping support
 
-The target was validation accuracy greater than or equal to 0.85 for two consecutive epochs. The two-GPU run met the target at epochs 10 and 11.
+### HPC Deployment
 
-Epoch 10 validation accuracy was 0.856.
-Epoch 11 validation accuracy was 0.873.
+* Slurm job scheduling
+* Multi-GPU resource allocation
+* Automated training execution
+* Performance monitoring
 
-The cumulative time at early stopping for the two-GPU run was 186.904 seconds.
+---
 
-The one-GPU baseline stopped after epoch 7 with a cumulative time of 502.202 seconds.
+## Performance Analysis
 
-The observed speedup was:
-```
-323.679 / 186.904 = 1.73x
-```
+Experiments were conducted using both single-GPU and multi-GPU configurations.
 
-The DDP version was much faster than the single-GPU version. The speedup came from splitting the training work across two GPUs and increasing total throughput. The scaling is not perfectly ideal because DDP adds overhead from gradient synchronization, validation, data loading, CPU-to-GPU transfers, and process coordination.
+Metrics evaluated include:
 
-## 6. Optimizations
-We increased the batch size for the two-GPU run.
+* Training throughput
+* Images processed per second
+* Time-to-target accuracy
+* Final model accuracy
+* Scalability across GPUs
 
-| Run | Batch Size | Samples/sec near end |
-|-----|-----------:|--------------------:|
-| 1 GPU | 32 | 709.185 |
-| 2 GPUs | 64 | 3040.142 |
+The results demonstrated significant improvements in training throughput when utilizing multiple GPUs while maintaining comparable classification accuracy.
 
-The larger batch size improved GPU utilization and increased throughput.
+---
 
-We also used these DataLoader settings:
-```
-num_workers=2
-prefetch_factor=2
-persistent_workers=True
-pin_memory=True
-```
+## Key Concepts Demonstrated
 
-These settings help data loading by keeping worker processes alive, prefetching batches, and using pinned memory for faster CPU-to-GPU transfer.
+* Distributed Computing
+* Parallel Processing
+* Deep Learning
+* GPU Programming
+* High Performance Computing (HPC)
+* Model Training Optimization
+* Performance Benchmarking
 
-## Software Environment
-On Falcon, we used:
-```
-module load PyTorch/2.7.1-foss-2024a-CUDA-12.6.0
-```
-Inside the repository:
-```
-python3 -m venv pytorch
-source pytorch/bin/activate
-```
-If PyTorch or torchvision were missing:
-```
-python3 -m pip install torch torchvision
-```
+---
 
-The `.gitignore` excludes the Python virtual environment and CIFAR-10 dataset files.
+## Future Improvements
+
+Potential future enhancements include:
+
+* Multi-node distributed training
+* Mixed precision training
+* Additional neural network architectures
+* Hyperparameter optimization
+* Larger image datasets
+* Automated experiment tracking
+
+---
+
+## Author
+
+Vignesh Thallam
+Computational Modeling & Data Analytics
+Virginia Tech
